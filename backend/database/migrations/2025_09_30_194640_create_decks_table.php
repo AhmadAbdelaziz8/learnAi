@@ -11,9 +11,12 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('documents', function (Blueprint $table) {
+        Schema::create('decks', function (Blueprint $table) {
             $table->id();
+            // one-to-many relationship with users
+            $table->foreignId('user_id')->constrained()->onDelete('cascade');
             $table->timestamps();
+            $table->string('topic');
         });
     }
 
@@ -22,6 +25,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('documents');
+        Schema::dropIfExists('decks');
     }
 };
