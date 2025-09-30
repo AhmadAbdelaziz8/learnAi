@@ -1,208 +1,199 @@
-# Project Plan: LearnSphere AI
+Project Plan: LearnSphere AI (API Edition)
+This plan outlines the development of a decoupled web application where a Laravel API backend serves data to a standalone Vue.js SPA frontend. The application will use AI to generate quizzes from user-submitted content.
 
-This document outlines the complete plan to build "LearnSphere AI," an AI-powered study assistant. The goal is to learn PHP/Laravel, Vue.js, and AI integration by following a structured, step-by-step process from local development with Docker to live deployment with Laravel Forge.
+Technology Stack
+Backend: Laravel 11+ (API Only) with Laravel Sanctum for authentication.
 
----
+Frontend: Vue.js 3 SPA with Vite, Vue Router, and Pinia.
 
-### **Technology Stack**
+Development: Docker with Laravel Sail.
 
-* **Development Environment:** Docker with Laravel Sail
-* **Backend:** PHP 8.2+ with Laravel 11+
-* **Frontend:** Vue.js 3 with Vite & Inertia.js
-* **Database:** PostgreSQL (managed by Sail)
-* **Styling:** Tailwind CSS
-* **AI - LLM:** Google Gemini API
-* **Deployment:** Laravel Forge + DigitalOcean (or similar)
+Database: PostgreSQL.
 
----
+Styling: Tailwind CSS.
 
-### **Phase 0: The Docker-Powered Foundation**
+AI - LLM: Google Gemini API.
 
-*Goal: Get your local development environment running perfectly inside Docker.*
+Deployment: Laravel Forge.
 
-1.  **Install Docker Desktop:** This is the only tool you need on your computer.
-    * *Learning:* [Install Docker Desktop](https://docs.docker.com/desktop/)
+Phase 0: The Decoupled Foundation
+Goal: Set up the Laravel API for stateless authentication and create the separate Vue.js project.
 
-2.  **Create Laravel Project with Sail:** In your terminal, run this command to create a new Laravel project. It uses Docker, so you don't need PHP installed locally.
-    ```bash
-    curl -s "[https://laravel.build/learnsphere-ai?with=pgsql](https://laravel.build/learnsphere-ai?with=pgsql)" | bash
-    ```
+Configure Laravel for API Authentication: We'll use Laravel Sanctum for token-based authentication. Breeze can set this up for us in API-only mode.
 
-3.  **Start the Environment:** Navigate into the project and start the Docker containers.
-    ```bash
-    cd learnsphere-ai
-    ./vendor/bin/sail up -d 
-    ```
-    Your site is now running at `http://localhost`.
+Bash
 
-4.  **Install Breeze for Auth & Frontend:** This will scaffold your login/registration system and configure Vue, Inertia, and Tailwind CSS.
-    ```bash
-    # Run the Breeze installation command
-    ./vendor/bin/sail artisan breeze:install
-    
-    # When prompted, choose: vue (Vue with Inertia)
-    
-    # Install all the necessary frontend packages
-    ./vendor/bin/sail npm install
-    
-    # Compile the frontend assets (leave this running in a separate terminal)
-    ./vendor/bin/sail npm run dev
-    
-    # Run the database migrations to create the 'users' table
-    ./vendor/bin/sail artisan migrate
-    ```
+# Install Breeze
+./vendor/bin/sail composer require laravel/breeze --dev
 
-5.  **Set up Gemini API Key:**
-    * Get your API key from [Google AI Studio](https://aistudio.google.com/).
-    * Open the `.env` file in your project.
-    * Add this line to the bottom, pasting your key:
-        ```env
-        GEMINI_API_KEY="YOUR_API_KEY_HERE"
-        ```
+# Run the Breeze installation for an API
+./vendor/bin/sail artisan breeze:install api
 
-6.  **Initialize Version Control:**
-    ```bash
-    git init
-    git add .
-    git commit -m "Initial project setup with Sail, Breeze, and Vue"
-    # Create a new repository on GitHub and push your code
-    ```
-* **Phase 0 Learning Materials:**
-    * [Laravel Sail Documentation](https://laravel.com/docs/sail)
-    * [Laravel Breeze Documentation](https://laravel.com/docs/starter-kits#laravel-breeze)
+# Run the migrations to create the users table
+./vendor/bin/sail artisan migrate
+Configure CORS: Since your Vue app will run on a different port (and later, a different domain), you need to allow it to make requests to your API.
 
----
+Open config/cors.php.
 
-### **Phase 1: Core Backend Logic (Laravel)**
+In the paths array, make sure it includes 'api/*'.
 
-*Goal: Build the backend functionality for managing user documents.*
+In allowed_origins, add your frontend's development URL (Vite's default is http://localhost:5173). For production, you'll add your actual domain.
 
-1.  **Create Document Model & Migration:** This command creates both a model file (`app/Models/Document.php`) and a database migration file.
-    ```bash
-    ./vendor/bin/sail artisan make:model Document -m
-    ```
-2.  **Define the Schema:** Open the new migration file in `database/migrations/` and define the table columns inside the `up()` method.
-    ```php
-    Schema::create('documents', function (Blueprint $table) {
-        $table->id();
-        $table->foreignId('user_id')->constrained()->onDelete('cascade');
-        $table->string('title');
-        $table->longText('original_content');
-        $table->string('status')->default('ready');
-        $table->timestamps();
-    });
-    ```
-3.  **Run the Migration:** Apply the changes to your database.
-    ```bash
-    ./vendor/bin/sail artisan migrate
-    ```
-4.  **Create the Controller:** This will handle the logic for your documents.
-    ```bash
-    ./vendor/bin/sail artisan make:controller DocumentController
-    ```
-5.  **Define Routes and Controller Logic:** Open `routes/web.php` and add routes for your documents. Then, fill in the logic in `app/Http/Controllers/DocumentController.php` to handle creating, reading, and deleting documents.
+Create the Vue.js Project: In a separate terminal, navigate outside your Laravel project directory and create the Vue app.
 
-* **Phase 1 Learning Materials:**
-    * [Laravel Eloquent (Models)](https://laravel.com/docs/eloquent)
-    * [Laravel Database Migrations](https://laravel.com/docs/migrations)
-    * [Laravel Controllers](https://laravel.com/docs/controllers)
-    * [Laravel Routing](https://laravel.com/docs/routing)
+Bash
 
----
+# This creates a new 'frontend' directory
+npm create vue@latest frontend
 
-### **Phase 2: Core Frontend (Vue.js + Tailwind CSS)**
+# Follow the prompts:
+# ✔ Project name: … frontend
+# ✔ Add TypeScript? … No
+# ✔ Add JSX Support? … No
+# ✔ Add Vue Router for Single Page Application development? … Yes
+# ✔ Add Pinia for state management? … Yes
+# ✔ Add Vitest for Unit Testing? … No
+# ✔ Add an End-to-End Testing Solution? … No
+# ✔ Add ESLint for code quality? … Yes
+# ✔ Add Prettier for code formatting? … Yes
 
-*Goal: Build a clean user interface for the features from Phase 1.*
+# Navigate into the new project and install dependencies
+cd frontend
+npm install
+Run Both Servers: You will now have two servers running in two separate terminals for development.
 
-1.  **Create Vue Page Components:** In `resources/js/Pages/`, create the following Vue components:
-    * `Dashboard.vue`: Main page after login. Will show a list of documents.
-    * `Documents/Create.vue`: A page with a form to create a new document.
-    * `Documents/Show.vue`: A page to display the content of a single document.
-2.  **Style with Tailwind CSS:** Use Tailwind's utility classes directly in your Vue components to style buttons, forms, and layouts.
-3.  **Implement Interactivity:**
-    * Use Inertia's `<Link>` component for navigation between your pages without full reloads.
-    * Use Inertia's `useForm` helper in `Create.vue` to handle form submission easily.
+Terminal 1 (Laravel API): cd your-laravel-project -> ./vendor/bin/sail up
 
-* **Phase 2 Learning Materials:**
-    * [Inertia.js Documentation](https://inertiajs.com/)
-    * [Vue 3 Documentation](https://vuejs.org/guide/introduction.html)
-    * [Tailwind CSS Documentation](https://tailwindcss.com/docs/utility-first)
+Terminal 2 (Vue Frontend): cd frontend -> npm run dev
 
----
+Phase 1: API Backend & Database Schema
+Goal: Build the database structure and API endpoints for managing documents and quizzes.
 
-### **Phase 3: AI Integration (Google Gemini)**
+Generate All Models & Migrations: We need tables for documents, quizzes, questions, and answers.
 
-*Goal: Connect to the Gemini API to bring the "magic" to your application.*
+Bash
 
-1.  **Install Gemini PHP Client:**
-    ```bash
-    ./vendor/bin/sail composer require google-gemini-php/client
-    ```
+# Document model and migration
+./vendor/bin/sail artisan make:model Document -m
 
-2.  **Build Quiz Generation Feature:**
-    * **Backend:** Create a `QuizController` and a route. When a user clicks "Generate Quiz," this controller will send the document content to the Gemini API with a specific prompt asking for JSON output.
-    * **Frontend:** Create a `Quiz.vue` component to display the questions and handle the user's answers.
+# Quiz model and migration
+./vendor/bin/sail artisan make:model Quiz -m
 
-3.  **Build AI Tutor Chatbot:**
-    * **Backend:** Create an API route (in `routes/api.php`) and a `ChatController`. This will take the user's question and the document context, send it to Gemini, and return the AI's answer.
-    * **Frontend:** Create a `Chatbot.vue` component with a chat interface. Use a library like Axios (`sail npm install axios`) to send the user's messages to your backend API.
+# Question model and migration
+./vendor/bin/sail artisan make:model Question -m
 
-4.  **Build Text-to-Speech (Optional Stretch Goal):**
-    * Add an open-source TTS engine like Piper to your `docker-compose.yml` file as a new service.
-    * Create a backend route that sends text to this service and returns an audio file URL.
-    * Add a "Read Aloud" button in your Vue components that calls this route and plays the audio.
+# Answer model and migration
+./vendor/bin/sail artisan make:model Answer -m
+Define the Database Schema: Open the new migration files in database/migrations/ and define the table structures.
 
-* **Phase 3 Learning Materials:**
-    * [Google AI for Developers](https://ai.google.dev/)
-    * [Laravel HTTP Client](https://laravel.com/docs/http-client)
+..._create_documents_table.php
 
----
+PHP
 
-### **Phase 4: Refinement & Polish**
+Schema::create('documents', function (Blueprint $table) {
+    $table->id();
+    $table->foreignId('user_id')->constrained()->cascadeOnDelete();
+    $table->string('title');
+    $table->longText('content');
+    $table->enum('status', ['pending', 'processing', 'ready', 'failed'])->default('pending');
+    $table->timestamps();
+});
+..._create_quizzes_table.php
 
-*Goal: Make the application feel professional and robust.*
+PHP
 
-1.  **Add Loading Indicators:** Show spinners or loading messages while waiting for responses from the Gemini API.
-2.  **Implement Error Handling:** Gracefully handle cases where the API call fails or returns an error.
-3.  **Improve Responsiveness:** Use Tailwind's responsive helpers (like `md:`, `lg:`) to ensure your app looks great on all screen sizes.
-4.  **Refactor:** Clean up your code, extract reusable Vue components, and organize your backend logic into services if needed.
+Schema::create('quizzes', function (Blueprint $table) {
+    $table->id();
+    $table->foreignId('document_id')->constrained()->cascadeOnDelete();
+    $table->string('title');
+    $table->timestamps();
+});
+..._create_questions_table.php
 
----
+PHP
 
-### **Phase 5: Deployment with Laravel Forge**
+Schema::create('questions', function (Blueprint $table) {
+    $table->id();
+    $table->foreignId('quiz_id')->constrained()->cascadeOnDelete();
+    $table->text('question_text');
+    $table->timestamps();
+});
+..._create_answers_table.php
 
-*Goal: Take your application from your local Docker environment to a live server on the internet.*
+PHP
 
-1.  **Sign Up for Accounts:**
-    * Create an account on [Laravel Forge](https://forge.laravel.com/).
-    * Create an account on a cloud provider like [DigitalOcean](https://www.digitalocean.com/).
+Schema::create('answers', function (Blueprint $table) {
+    $table->id();
+    $table->foreignId('question_id')->constrained()->cascadeOnDelete();
+    $table->text('answer_text');
+    $table->boolean('is_correct')->default(false);
+    $table->timestamps();
+});
+Run Migrations: Apply the new schema to your database.
 
-2.  **Link Your Cloud Provider:** In the Forge dashboard, link your DigitalOcean account by providing an API token.
+Bash
 
-3.  **Provision a New Server:**
-    * In Forge, click "Create Server" and choose your provider (DigitalOcean).
-    * Select your desired server size (the smallest is fine to start) and region.
-    * Ensure "PostgreSQL" is checked as the database type.
-    * Forge will now create the server and install all the necessary software. This takes about 10-15 minutes.
+./vendor/bin/sail artisan migrate
+Create API Controllers & Routes: Define the endpoints in routes/api.php. Use resource controllers for standard CRUD operations.
 
-4.  **Configure Your Site:**
-    * Once the server is ready, go to the server's "Sites" tab in Forge.
-    * Enter your domain name (or a test domain provided by Forge).
-    * Connect your GitHub/GitLab repository and the branch you want to deploy (e.g., `main`).
-    * Click "Add Site."
+Bash
 
-5.  **Set Environment Variables:**
-    * Go to your new site's management page in Forge.
-    * Click on the "Environment" tab.
-    * **Crucially, copy your `GEMINI_API_KEY` from your local `.env` file to this panel.**
-    * Forge will automatically set your database credentials.
+# Create a controller for documents
+./vendor/bin/sail artisan make:controller Api/DocumentController --api
+In routes/api.php, protect your routes with Sanctum's middleware.
 
-6.  **Deploy!**
-    * Go to the "Deployments" tab for your site.
-    * Review the "Deploy Script." It should already contain commands like `composer install` and `npm run build`.
-    * Click the **"Deploy Now"** button. Forge will pull your code, run the script, and your site will be live!
-    * Enable the "Quick Deploy" option so your site automatically redeploys every time you push a new commit to your `main` branch.
+PHP
 
-* **Phase 5 Learning Materials:**
-    * [Laravel Forge Documentation](https://forge.laravel.com/docs/1.0/getting-started.html)
-    * [DigitalOcean Getting Started](https://docs.digitalocean.com/getting-started/)
+Route::middleware('auth:sanctum')->group(function () {
+    Route::apiResource('documents', App\Http\Controllers\Api\DocumentController::class);
+    // Add other protected routes here for quizzes, etc.
+});
+Phase 2: Building the Vue.js SPA
+Goal: Create the user interface for authentication, document management, and quiz taking.
+
+Set up API Communication: Install Axios in your Vue project (npm install axios). Create a service or utility file to handle base configuration (e.g., setting the API base URL http://localhost:8000).
+
+Implement Authentication Flow:
+
+Create Login.vue and Register.vue pages.
+
+Use Pinia to store the user's authentication state and API token globally.
+
+Use Vue Router's navigation guards to protect routes that require a user to be logged in.
+
+Build Core Feature Pages:
+
+Dashboard.vue: Fetch and display a list of the user's documents from the /api/documents endpoint.
+
+DocumentCreate.vue: A form to upload a new document (title and content).
+
+DocumentView.vue: Display a document's content and include a button to "Generate Quiz."
+
+Phase 3: AI Integration & Logic
+Goal: Connect to the Gemini API and use the response to populate your database.
+
+Create Quiz Generation Endpoint:
+
+Create a new controller, e.g., QuizGenerationController.
+
+Define a POST route like /api/documents/{document}/generate-quiz.
+
+Implement Backend Logic:
+
+In the controller, retrieve the document's content.
+
+Send the content to the Gemini API with a carefully crafted prompt asking for quiz data in JSON format.
+
+When you receive the JSON response, parse it.
+
+Use your Eloquent models (Quiz, Question, Answer) to save the entire generated quiz to your database, linking everything together.
+
+Return the newly created Quiz's ID or the full Quiz object as a JSON response.
+
+Build Frontend Quiz Interface:
+
+Create a QuizView.vue page.
+
+When the user is on this page, it will fetch the quiz data (including questions and answers) from an endpoint like /api/quizzes/{quiz_id}.
+
+Build the UI to display one question at a time, handle user selections, and calculate a final score.
