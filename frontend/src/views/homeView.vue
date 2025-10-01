@@ -1,14 +1,20 @@
 <script setup>
 import { onMounted } from "vue";
 import { useDeckStore } from "@/store/deckStore";
+import { useRouter } from "vue-router";
 import deckList from "@/components/deckList.vue";
 
 const deckStore = useDeckStore();
+const router = useRouter();
 
 // when the component is mounted, fetch the decks
 onMounted(async () => {
   await deckStore.fetchDecks();
 });
+
+const goToAddDeck = () => {
+  router.push('/add-deck');
+};
 </script>
 
 <template>
@@ -47,14 +53,26 @@ onMounted(async () => {
           </div>
         </div>
 
-        <!-- Stats -->
-        <div class="flex items-center gap-8 text-sm">
-          <div class="flex items-center gap-2">
-            <div class="w-2 h-2 bg-green-500 rounded-full"></div>
-            <span class="text-gray-700"
-              >{{ deckStore.decks.length }} Decks Available</span
-            >
+        <!-- Stats and Actions -->
+        <div class="flex items-center justify-between">
+          <div class="flex items-center gap-8 text-sm">
+            <div class="flex items-center gap-2">
+              <div class="w-2 h-2 bg-green-500 rounded-full"></div>
+              <span class="text-gray-700"
+                >{{ deckStore.decks.length }} Decks Available</span
+              >
+            </div>
           </div>
+          
+          <button
+            @click="goToAddDeck"
+            class="bg-green-600 hover:bg-green-700 text-white px-6 py-2 rounded-lg font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 flex items-center gap-2"
+          >
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"/>
+            </svg>
+            Create Deck
+          </button>
         </div>
       </div>
     </div>

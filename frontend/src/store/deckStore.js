@@ -1,5 +1,6 @@
 import { defineStore } from "pinia";
 import { apiClient } from "@/services/api";
+import { deckService } from "@/services/deckService";
 
 export const useDeckStore = defineStore("deck", {
   state: () => ({
@@ -7,6 +8,8 @@ export const useDeckStore = defineStore("deck", {
     currentDeck: null,
     loading: false,
     error: null,
+    creating: false,
+    createError: null,
   }),
   actions: {
     async fetchDecks() {
@@ -22,7 +25,7 @@ export const useDeckStore = defineStore("deck", {
         this.loading = false;
       }
     },
-    
+
     async fetchDeck(id) {
       this.loading = true;
       this.error = null;
@@ -37,9 +40,31 @@ export const useDeckStore = defineStore("deck", {
         this.loading = false;
       }
     },
-    
+
+    async createDeck(deckData) {
+      this.creating = true;
+      this.createError = null;
+      try {
+        const response = await deckService.createDeck(deckData);
+        // Add the new deck to the existing decks array
+        this.decks.push(response.deck);
+        return response.deck;
+      } catch (error) {
+        this.createError = error;
+        console.error("Error creating deck:", error);
+        throw error;
+      } finally {
+        this.creating = false;
+      }
+    },
+
     clearCurrentDeck() {
       this.currentDeck = null;
+    },
+
+    clearErrors() {
+      this.error = null;
+      this.createError = null;
     },
   },
 });
