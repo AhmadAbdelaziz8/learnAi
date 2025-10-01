@@ -55,10 +55,6 @@ onMounted(async () => {
               >{{ deckStore.decks.length }} Decks Available</span
             >
           </div>
-          <div class="flex items-center gap-2">
-            <div class="w-2 h-2 bg-blue-500 rounded-full"></div>
-            <span class="text-gray-700">Learning Progress: Active</span>
-          </div>
         </div>
       </div>
     </div>

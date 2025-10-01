@@ -4,6 +4,7 @@ import { apiClient } from "@/services/api";
 export const useDeckStore = defineStore("deck", {
   state: () => ({
     decks: [],
+    currentDeck: null,
     loading: false,
     error: null,
   }),
@@ -20,6 +21,25 @@ export const useDeckStore = defineStore("deck", {
       } finally {
         this.loading = false;
       }
+    },
+    
+    async fetchDeck(id) {
+      this.loading = true;
+      this.error = null;
+      this.currentDeck = null;
+      try {
+        const response = await apiClient.get(`/decks/${id}`);
+        this.currentDeck = response.data;
+      } catch (error) {
+        this.error = error;
+        console.error("Error fetching deck:", error);
+      } finally {
+        this.loading = false;
+      }
+    },
+    
+    clearCurrentDeck() {
+      this.currentDeck = null;
     },
   },
 });

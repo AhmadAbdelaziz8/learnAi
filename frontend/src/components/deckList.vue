@@ -1,4 +1,6 @@
 <script setup>
+import { useRouter } from "vue-router";
+
 defineProps({
   decks: {
     type: Array,
@@ -6,44 +8,25 @@ defineProps({
   },
 });
 
+const router = useRouter();
+
+// Navigation function
+const goToStudy = (deckId) => {
+  router.push(`/study/${deckId}`);
+};
+
 // Helper functions for deck metadata
-const getDeckCategory = (topic) => {
-  if (
-    topic.toLowerCase().includes("javascript") ||
-    topic.toLowerCase().includes("programming")
-  )
-    return "Programming";
-  if (
-    topic.toLowerCase().includes("spanish") ||
-    topic.toLowerCase().includes("language")
-  )
-    return "Language";
-  if (
-    topic.toLowerCase().includes("geography") ||
-    topic.toLowerCase().includes("world")
-  )
-    return "Geography";
-  if (
-    topic.toLowerCase().includes("biology") ||
-    topic.toLowerCase().includes("medical")
-  )
-    return "Medicine";
-  if (topic.toLowerCase().includes("art")) return "Art";
-  return "General";
-};
 
-const getDifficultyLevel = (cardCount) => {
-  if (cardCount <= 10)
-    return { level: "Beginner", color: "bg-green-100 text-green-800" };
-  if (cardCount <= 20)
-    return { level: "Intermediate", color: "bg-yellow-100 text-yellow-800" };
-  return { level: "Advanced", color: "bg-red-100 text-red-800" };
-};
+const formatDate = (dateString) => {
+  const date = new Date(dateString);
+  const now = new Date();
+  const diffTime = Math.abs(now - date);
+  const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
 
-const getRandomProgress = () => Math.floor(Math.random() * 100);
-const getRandomTimeAgo = () => {
-  const times = ["2 hours ago", "1 day ago", "3 days ago", "1 week ago"];
-  return times[Math.floor(Math.random() * times.length)];
+  if (diffDays === 1) return "1 day ago";
+  if (diffDays < 7) return `${diffDays} days ago`;
+  if (diffDays < 30) return `${Math.ceil(diffDays / 7)} weeks ago`;
+  return `${Math.ceil(diffDays / 30)} months ago`;
 };
 </script>
 
@@ -74,27 +57,21 @@ const getRandomTimeAgo = () => {
     <div
       v-for="deck in decks"
       :key="deck.id"
-      class="bg-white rounded-xl shadow-sm border border-gray-200 hover:shadow-lg hover:border-green-200 transition-all duration-300 overflow-hidden group"
+      @click="goToStudy(deck.id)"
+      class="bg-white rounded-xl shadow-sm border border-gray-200 hover:shadow-lg hover:border-green-200 transition-all duration-300 overflow-hidden group cursor-pointer transform hover:scale-105"
     >
       <!-- Card Header -->
       <div class="p-6 pb-4">
         <div class="flex items-start justify-between mb-4">
           <div class="flex items-center gap-3">
             <span
-              :class="getDifficultyLevel(deck.flashcards.length).color"
-              class="px-2 py-1 text-xs font-medium rounded-full"
+              class="bg-green-100 text-green-800 px-2 py-1 text-xs font-medium rounded-full"
             >
-              {{ getDeckCategory(deck.topic) }}
-            </span>
-            <span
-              :class="getDifficultyLevel(deck.flashcards.length).color"
-              class="px-2 py-1 text-xs font-medium rounded-full"
-            >
-              {{ getDifficultyLevel(deck.flashcards.length).level }}
+              {{ deck.flashcards.length }} Cards
             </span>
           </div>
           <div class="text-xs text-gray-500">
-            {{ getRandomTimeAgo() }}
+            {{ formatDate(deck.created_at) }}
           </div>
         </div>
 
@@ -105,11 +82,7 @@ const getRandomTimeAgo = () => {
         </h3>
 
         <p class="text-sm text-gray-600 mb-4">
-          {{
-            deck.flashcards.length > 0
-              ? `Core concepts every learner should know`
-              : `Essential knowledge for beginners`
-          }}
+          Created by {{ deck.user.name }}
         </p>
 
         <!-- Stats -->
@@ -131,36 +104,26 @@ const getRandomTimeAgo = () => {
                 stroke-linecap="round"
                 stroke-linejoin="round"
                 stroke-width="2"
-                d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
+                d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
               />
             </svg>
-            {{ getRandomTimeAgo() }}
+            {{ deck.user.name }}
           </div>
-        </div>
-      </div>
-
-      <!-- Progress Bar (if has cards) -->
-      <div v-if="deck.flashcards.length > 0" class="px-6 pb-4">
-        <div
-          class="flex items-center justify-between text-xs text-gray-600 mb-2"
-        >
-          <span>Progress</span>
-          <span>{{ getRandomProgress() }}%</span>
-        </div>
-        <div class="w-full bg-gray-200 rounded-full h-2">
-          <div
-            class="bg-green-500 h-2 rounded-full transition-all duration-300"
-            :style="{ width: getRandomProgress() + '%' }"
-          ></div>
         </div>
       </div>
 
       <!-- Action Button -->
       <div class="p-6 pt-4 bg-gray-50 border-t border-gray-100">
         <button
-          class="w-full bg-green-500 hover:bg-green-600 text-white font-semibold py-3 px-4 rounded-lg transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2"
+          @click.stop="goToStudy(deck.id)"
+          :class="
+            deck.flashcards.length > 0
+              ? 'bg-green-500 hover:bg-green-600 text-white'
+              : 'bg-gray-100 hover:bg-gray-200 text-gray-700 border border-gray-300'
+          "
+          class="w-full font-semibold py-3 px-4 rounded-lg transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2"
         >
-          {{ deck.flashcards.length > 0 ? "Start Learning" : "Create Cards" }}
+          {{ deck.flashcards.length > 0 ? "Start Learning" : "View Deck" }}
         </button>
       </div>
     </div>
