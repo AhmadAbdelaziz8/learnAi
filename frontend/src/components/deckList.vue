@@ -16,7 +16,7 @@ const goToStudy = (deckId) => {
 };
 
 const goToAddDeck = () => {
-  router.push('/add-deck');
+  router.push("/add-deck");
 };
 
 // Helper functions for deck metadata
@@ -54,13 +54,25 @@ const formatDate = (dateString) => {
       </svg>
     </div>
     <h3 class="text-xl font-semibold text-gray-900 mb-2">No decks found</h3>
-    <p class="text-gray-600 mb-6">Why not create your first AI-generated deck?</p>
+    <p class="text-gray-600 mb-6">
+      Why not create your first AI-generated deck?
+    </p>
     <button
       @click="goToAddDeck"
       class="bg-green-600 hover:bg-green-700 text-white px-6 py-3 rounded-lg font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 inline-flex items-center gap-2"
     >
-      <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"/>
+      <svg
+        class="w-5 h-5"
+        fill="none"
+        stroke="currentColor"
+        viewBox="0 0 24 24"
+      >
+        <path
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          stroke-width="2"
+          d="M12 6v6m0 0v6m0-6h6m-6 0H6"
+        />
       </svg>
       Create Your First Deck
     </button>

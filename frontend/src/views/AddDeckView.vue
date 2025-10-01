@@ -1,5 +1,5 @@
 <script setup>
-import AddDeck from '@/components/AddDeck.vue'
+import AddDeck from "@/components/AddDeck.vue";
 </script>
 
 <template>

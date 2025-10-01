@@ -4,14 +4,14 @@ export const deckService = {
   // Create a new deck with PDF upload
   async createDeck(deckData) {
     const formData = new FormData();
-    formData.append('topic', deckData.topic);
-    formData.append('pdf_file', deckData.pdfFile);
-    formData.append('user_id', deckData.userId);
+    formData.append("topic", deckData.topic);
+    formData.append("pdf_file", deckData.pdfFile);
+    formData.append("user_id", deckData.userId);
 
     try {
-      const response = await apiClient.post('/decks', formData, {
+      const response = await apiClient.post("/decks", formData, {
         headers: {
-          'Content-Type': 'multipart/form-data',
+          "Content-Type": "multipart/form-data",
         },
       });
       return response.data;
@@ -23,7 +23,7 @@ export const deckService = {
   // Get all decks
   async getDecks() {
     try {
-      const response = await apiClient.get('/decks');
+      const response = await apiClient.get("/decks");
       return response.data;
     } catch (error) {
       throw error;
@@ -38,5 +38,5 @@ export const deckService = {
     } catch (error) {
       throw error;
     }
-  }
+  },
 };
