@@ -2,7 +2,7 @@
 
 namespace App\Services;
 
-use Gemini\Laravel\Facades\Gemini;
+use Gemini;
 use Gemini\Data\GenerationConfig;
 use Gemini\Enums\ResponseMimeType;
 use Illuminate\Support\Facades\Log;
@@ -30,7 +30,15 @@ class GeminiService
         $prompt = "Generate 10 flashcards (question and answer) based on the following text:\n\n---\n\n{$textContent}";
 
         try {
-            $result = Gemini::generativeModel(model: 'gemini-2.5-flash')
+            // Get API key from environment
+            $apiKey = env('GEMINI_API_KEY');
+            if (!$apiKey) {
+                throw new Exception('GEMINI_API_KEY not configured');
+            }
+
+            $client = Gemini::client($apiKey);
+            
+            $result = $client->generativeModel(model: 'gemini-2.0-flash')
                 ->withGenerationConfig(
                     new GenerationConfig(
                         responseMimeType: ResponseMimeType::APPLICATION_JSON,

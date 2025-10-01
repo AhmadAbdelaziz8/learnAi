@@ -12,7 +12,7 @@ class Deck extends Model
     use HasFactory;
 
     protected $fillable = [
-        'name',
+        'topic',
         'user_id',
     ];
     // Define relationships
