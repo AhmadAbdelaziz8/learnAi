@@ -3,34 +3,75 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
-use Illuminate\Http\Request;
 use App\Models\Deck;
-use Spatie\PdfToText\Pdf; 
+use App\Models\Flashcard;
 use App\Services\GeminiService;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
+use Smalot\PdfParser\Parser;
 
 class DeckController extends Controller
 {
-    // Store a newly created deck in storage.
+    protected $geminiService;
+
+    public function __construct(GeminiService $geminiService)
+    {
+        $this->geminiService = $geminiService;
+    }
+
+    public function index()
+    {
+        $decks = Deck::with('flashcards', 'user')->get();
+        return response()->json($decks);
+    }
+
     public function store(Request $request)
     {
-        // Validate and store the deck
-        $validated = $request->validate([
-            'topic' => 'required|string|max:255',
-            'file' => 'required|file|mimes:pdf|max:10240',
+        $request->validate([
+            'name' => 'required|string|max:255',
+            'pdf_file' => 'required|file|mimes:pdf|max:10240',
+            'user_id' => 'required|exists:users,id', // Add this validation
         ]);
-        // get the PDF path from the request
-        $pdfPath = $request->file('file')->getRealPath();
-        $textContent = Pdf::getText($pdfPath);
-        $topic = $validated['topic'];
-        // Extract text from the PDF
-        $flashcards = $geminiService->generateFlashcardsFromText($textContent);
 
-        deck::create([
-            'user_id' => $request->user()->id,
-            'topic' => $topic,
+        // Create the deck with provided user_id
+        $deck = Deck::create([
+            'name' => $request->name,
+            'user_id' => $request->user_id, // Use provided user_id
         ]);
-        $deck = Deck::latest()->first();
-        return response()->json(['deck' => $deck], 201);
+
+        // Handle PDF upload and text extraction
+        $pdfFile = $request->file('pdf_file');
+        $path = $pdfFile->store('pdfs', 'public');
+
+        // Extract text from PDF
+        $parser = new Parser();
+        $pdf = $parser->parseFile(storage_path('app/public/' . $path));
+        $textContent = $pdf->getText();
+
+        // Generate flashcards using Gemini
+        $flashcards = $this->geminiService->generateFlashcardsFromText($textContent);
+
+        // Save flashcards to database
+        foreach ($flashcards as $flashcardData) {
+            Flashcard::create([
+                'deck_id' => $deck->id,
+                'question' => $flashcardData['question'],
+                'answer' => $flashcardData['answer'],
+            ]);
+        }
+
+        // Load the deck with flashcards and user for response
+        $deck->load('flashcards', 'user');
+
+        return response()->json([
+            'message' => 'Deck created successfully',
+            'deck' => $deck,
+        ], 201);
     }
-    
+
+    public function show(Deck $deck)
+    {
+        $deck->load('flashcards', 'user');
+        return response()->json($deck);
+    }
 }
